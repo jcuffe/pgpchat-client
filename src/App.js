@@ -1,8 +1,18 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
+import Auth from './util/Auth';
 import './App.css';
 
 class App extends Component {
+  constructor() {
+    super();
+    this.auth = new Auth();
+  }
+
+  handleLogin = () => {
+    this.auth.login();
+  }
+
   render() {
     return (
       <div className="App">
@@ -13,6 +23,7 @@ class App extends Component {
         <p className="App-intro">
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
+        <button onClick={this.handleLogin}>Log in</button>
       </div>
     );
   }
