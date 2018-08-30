@@ -1,32 +1,54 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import Auth from './util/Auth';
-import './App.css';
+import React, { Component } from 'react'
+import { Route, Switch } from 'react-router-dom'
+import Auth from './util/Auth'
+
+const blank = { accessToken: null, idToken: null, expiresAt: null }
 
 class App extends Component {
   constructor() {
-    super();
-    this.auth = new Auth();
+    super()
+    this.auth = new Auth()
+    this.state = blank
   }
 
-  handleLogin = () => {
-    this.auth.login();
+  setSession = ({ accessToken, idToken, expiresIn }) => {
+    let expiresAt = JSON.stringify((expiresIn * 1000) + new Date().getTime())
+    this.setState({ accessToken, idToken, expiresAt })
   }
 
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <button onClick={this.handleLogin}>Log in</button>
-      </div>
-    );
+  handleAuthentication = () => {
+    this.auth.handleAuthentication()
+      .then(this.setSession)
+      .catch(err => console.log("Error: ", err))
+      .finally(this.redirectHome)
+    return null
   }
+
+  handleLogout = () => {
+    this.clearState()
+    this.redirectHome()
+  }
+
+  isAuthenticated = () => new Date().getTime() < JSON.parse(this.state.expiresAt)
+  clearState = () => this.setState(blank)
+  redirectHome = () => this.props.history.push('')
+  
+  render = () => (
+    <Switch>
+      <Route path="/callback" component={this.handleAuthentication} />
+      <Route path="" >
+        <div className="App">
+          {this.isAuthenticated()
+            ? <button onClick={this.handleLogout}>Log out</button>
+            : <button onClick={this.auth.login}>Log in</button>
+          }
+          <p>{this.state.accessToken}</p>
+          <p>{this.state.idToken}</p>
+        </div>
+      </Route>
+    </Switch>
+  )
+
 }
 
-export default App;
+export default App
